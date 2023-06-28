@@ -1,66 +1,37 @@
-import streamlit as st
 from dotenv import load_dotenv
-from langchain.text_splitter import CharacterTextSplitter
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.vectorstores import FAISS
-from langchain.chat_models import ChatOpenAI
-from langchain.memory import ConversationBufferMemory
-from langchain.chains import ConversationalRetrievalChain
-from htmlTemplates import css, bot_template, user_template
-from langchain.chains import VectorDBQAWithSourcesChain
-from langchain import OpenAI
-import xmltodict
-import requests
-import pickle
-from bs4 import BeautifulSoup
-import argparse
+import os
+from langchain.chains import APIChain
+from langchain.llms import OpenAI
 
+load_dotenv()
 
-def extract_text_from(url):
-    html = requests.get(url).text
-    soup = BeautifulSoup(html, features="html.parser")
-    text = soup.get_text()
+openai_api_key = os.getenv("OPENAI_API_KEY")
+api_key = os.getenv("USDA_API_KEY")
 
-    lines = (line.strip() for line in text.splitlines())
-    return "\n".join(line for line in lines if line)
-
-
-r = requests.get("https://python.langchain.com/sitemap.xml")
-xml = r.text
-raw = xmltodict.parse(xml)
-
-pages = []
-for info in raw["urlset"]["url"]:
-    # info example: {'loc': 'https://www.paepper.com/...', 'lastmod': '2021-12-28'}
-    url = info["loc"]
-    if "https://python.langchain.com/docs" in url:
-        pages.append({"text": extract_text_from(url), "source": url})
-
-text_splitter = CharacterTextSplitter(
-    separator="\n", chunk_size=1000, chunk_overlap=200, length_function=len
+llm = OpenAI(
+    temperature=0, model_name="gpt-3.5-turbo-0613", openai_api_key=openai_api_key
 )
-docs, metadatas = [], []
-for page in pages:
-    splits = text_splitter.split_text(page["text"])
-    docs.extend(splits)
-    metadatas.extend([{"source": page["source"]}] * len(splits))
-    print(f"Split {page['source']} into {len(splits)} chunks")
 
-store = FAISS.from_texts(docs, OpenAIEmbeddings(), metadatas=metadatas)
-with open("faiss_store.pkl", "wb") as f:
-    pickle.dump(store, f)
+api_docs = """
+BASE URL: https://api.nal.usda.gov/fdc/v1/
 
-parser = argparse.ArgumentParser(description="Langchain Q&A")
-parser.add_argument("question", type=str, help="Your question for the Langchain Docs")
-args = parser.parse_args()
+API Documentation:
 
-with open("faiss_store.pkl", "rb") as f:
-    store = pickle.load(f)
+The API endpoint /food/{fdcId}?api_key={api_key} is used to fetch details for one food item. All URL parameters are listed below:
+    - fdcId: ID of the food item. Ex: 123456, 789012
+    - api_key: Your API key obtained from data.gov.
+    
+The API endpoint /foods?api_key={api_key} is used to fetch details for multiple food items. This endpoint can handle both GET and POST requests. In case of a POST request, a list of FDC IDs needs to be provided in the request body.
 
-chain = VectorDBQAWithSourcesChain.from_llm(
-    llm=OpenAI(temperature=0), vectorstore=store
-)
-result = chain({"question": args.question})
+The API endpoint /foods/list?api_key={api_key} is used to return a paged list of foods in the 'abridged' format. This endpoint can also handle both GET and POST requests. In case of a POST request, additional parameters like 'pageSize' can be provided in the request body.
 
-print(f"Answer: {result['answer']}")
-print(f"Sources: {result['sources']}")
+The API endpoint /foods/search?api_key={api_key} is used to return a list of foods that match search (query) keywords. This endpoint also accepts both GET and POST requests. For GET requests, the search query is passed as a URL parameter 'query'. For POST requests, the search query and other optional parameters can be provided in the request body.
+
+For all the above endpoints, an API key obtained from data.gov is required.
+"""
+
+chain_new = APIChain.from_llm_and_api_docs(llm, api_docs, verbose=True)
+
+answer = chain_new.run("Can you give me the nutritional information on kidney beans?")
+
+print(answer)
