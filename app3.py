@@ -17,7 +17,7 @@ chain_new = APIChain.from_llm_and_api_docs(
 )
 
 answer = chain_new.run(
-    "What is the weather like right now in Munich, Germany in degrees Fahrenheit?"
+    "Can you give me the current weather in Marbella, Spain?"
 )
 
 print(answer)
