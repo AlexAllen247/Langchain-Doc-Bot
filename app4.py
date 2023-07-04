@@ -50,6 +50,6 @@ Replace '{work_id}' with the specific ID of the work.
 
 chain_new = APIChain.from_llm_and_api_docs(llm, api_docs, verbose=True)
 
-answer = chain_new.run("Can you give me all the details of the book Fantastic Mr Fox?")
+answer = chain_new.run("Can you give me some books that I may find interesting?")
 
 print(answer)
