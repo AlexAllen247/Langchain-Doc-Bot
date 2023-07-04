@@ -4,6 +4,8 @@ from langchain.prompts.prompt import PromptTemplate
 from langchain.chat_models import ChatOpenAI
 from dotenv import load_dotenv
 import os
+from langchain.llms import OpenAI
+from langchain.chains import SequentialChain, LLMChain
 
 load_dotenv()
 
@@ -61,6 +63,14 @@ answer_one = chain_new.run("Can you give me all the information about Ethereum?"
 
 answer_two = chain_new.run("Can you give me all the information on Bitcoin?")
 
-combined_results = answer_one + " " + answer_two
+prompt = PromptTemplate(
+    input_variables=["answer_one", "answer_two"],
+    template="Analyze the following two answers: {answer_one} and {answer_two}. What is a combined answer?"
+)
 
-print(combined_results)
+# Create the LLMChain
+chain = LLMChain(llm=llm, prompt=prompt)
+
+# The result is the combined answer
+print(chain)
+
