@@ -137,7 +137,7 @@ Endpoints:
 
 chain_new = APIChain.from_llm_and_api_docs(llm, api_docs, verbose=True)
 
-answer = chain_new.run("How many coins are there with a marketcap of lower than one hundred thousand dollars?")
+answer = chain_new.run("What is the price of Pepe?")
 
 print(answer)
 
