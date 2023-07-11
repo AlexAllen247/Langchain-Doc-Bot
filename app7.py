@@ -4,8 +4,6 @@ from langchain.prompts.prompt import PromptTemplate
 from langchain.chat_models import ChatOpenAI
 from dotenv import load_dotenv
 import os
-from langchain.llms import OpenAI
-from langchain.chains import SequentialChain, LLMChain
 
 load_dotenv()
 
