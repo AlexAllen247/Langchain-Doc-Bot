@@ -137,7 +137,7 @@ Endpoints:
 
 chain_new = APIChain.from_llm_and_api_docs(llm, api_docs, verbose=True)
 
-answer = chain_new.run("What is the price of Pepe?")
+answer = chain_new.run("Can you give an analysis of the price of BTC?")
 
 print(answer)
 
