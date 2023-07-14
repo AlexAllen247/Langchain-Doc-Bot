@@ -64,7 +64,6 @@ Endpoints:
 
 - GET /asset_platforms
     List all asset platforms (Blockchain networks)
-
 - GET /coins/categories/list
     List all categories
 
@@ -137,7 +136,7 @@ Endpoints:
 
 chain_new = APIChain.from_llm_and_api_docs(llm, api_docs, verbose=True)
 
-answer = chain_new.run("Can you give an analysis of the price of BTC?")
+answer = chain_new.run("Can you give me the marketcap of Ampleforth?")
 
 print(answer)
 
